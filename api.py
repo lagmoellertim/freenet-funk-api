@@ -36,7 +36,7 @@ class FunkAPI:
                 return self.token
             self.getToken(refresh=True)
 
-        if self.token is not None or refresh or (
+        if self.token is None or refresh or (
                 False if not self.always_test_token else not self.testToken(self.token)):
             self.token = self.aws.authenticate_user(
             )["AuthenticationResult"]["AccessToken"]
@@ -65,7 +65,7 @@ class FunkAPI:
         json = {"operationName": "CustomerForDashboardQuery", "variables": {},
                 "query": "query CustomerForDashboardQuery {\n  me {\n    ...CustomerForDashboardFragment\n    __typename\n  }\n}\n\nfragment CustomerForDashboardFragment on Customer {\n  id\n  details {\n    ...DetailsFragment\n    __typename\n  }\n  customerProducts {\n    ...ProductFragment\n    __typename\n  }\n  __typename\n}\n\nfragment DetailsFragment on Details {\n  firstName\n  lastName\n  dateOfBirth\n  contactEmail\n  __typename\n}\n\nfragment ProductFragment on FUNKCustomerProduct {\n  id\n  state\n  paymentMethods {\n    ...PaymentMethodFragment\n    __typename\n  }\n  mobileNumbers {\n    ...MobileNumberFragment\n    __typename\n  }\n  sims {\n    ...SIMFragment\n    __typename\n  }\n  tariffs: tariffCustomerProductServices {\n    ...TariffFragment\n    __typename\n  }\n  __typename\n}\n\nfragment PaymentMethodFragment on PaymentMethod {\n  id\n  state\n  approvalChallenge {\n    approvalURL\n    __typename\n  }\n  agreement {\n    state\n    payerInfo {\n      payerID\n      email\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment MobileNumberFragment on MobileNumberCPS {\n  id\n  number\n  state\n  usage {\n    usedDataPercentage\n    __typename\n  }\n  productServiceId\n  productServiceInfo {\n    id\n    label\n    __typename\n  }\n  ... on MNPImportCustomerProductService {\n    otherProviderShortcut\n    otherProviderCustomName\n    otherContract {\n      contractType\n      mobileNumber\n      mobileNumberIsVerified\n      __typename\n    }\n    mnpInfos {\n      confirmedPortingDate\n      lastPortingResult\n      problemCode\n      problemReason\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment SIMFragment on SIMCustomerProductService {\n  id\n  networkState\n  state\n  iccid\n  delivery {\n    state\n    trackingDetails {\n      stateId\n      stateLabel\n      trackingURL\n      __typename\n    }\n    deliveryProvider\n    address {\n      city\n      additionalInfo\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment TariffFragment on TariffCustomerProductService {\n  id\n  booked\n  starts\n  state\n  productServiceId\n  productServiceInfo {\n    id\n    label\n    follower {\n      id\n      label\n      __typename\n    }\n    marketingInfo {\n      name\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n"}
 
-        if self.data is not None or refresh:
+        if self.data is None or refresh:
             req = requests.post(self.API_ENDPOINT, json=json,
                                 headers={
                                     "x-api-key": self.API_KEY,
@@ -87,7 +87,7 @@ class FunkAPI:
 
     # TARIFFS
     def orderTariff(self, tariffID, productID=None, refreshData=True):
-        if productID is not None:
+        if productID is None:
             productID = self.getOrderedProducts()[0]["id"]
 
         json = {"operationName": "AddTariffToProductMutation",
