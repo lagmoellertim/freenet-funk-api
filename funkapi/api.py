@@ -85,6 +85,9 @@ class FunkAPI:
     def getOrderedProducts(self, refreshData=False):
         return self.getData(refresh=refreshData)["data"]["me"]["customerProducts"]
 
+    def getCurrentTariff(self, refreshData=False):
+        return self.getData(refresh=refreshData)["data"]["me"]["customerProducts"][0]["tariffs"][-1]
+
     # TARIFFS
     def orderTariff(self, tariffID, productID=None, refreshData=True):
         if productID is None:

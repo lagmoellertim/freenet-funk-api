@@ -4,3 +4,7 @@ venv/
 dist/
 build/
 funkapi\.egg-info/
+
+test\.py
+
+funkapi/__pycache__/
