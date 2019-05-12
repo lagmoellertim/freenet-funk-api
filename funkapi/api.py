@@ -10,10 +10,13 @@ class FunkAPI:
     AWS_POOL_ID = "eu-central-1_ZPDpzBJy4"
     AWS_CLIENT_ID = "3asd34f9vfrg6pd2mrbqhn3g3r"
 
-    def __init__(self, username, password, token=None, always_test_token=False):
+    def __init__(self, username, password, token=None, alwaysTestToken=False, ignoreTokenCheck=False,
+                 ignoreTokenRetry=True, autoloadData=True):
         self.username = username
         self.password = password
-        self.always_test_token = always_test_token
+        self.alwaysTestToken = alwaysTestToken
+        self.ignoreTokenCheck = ignoreTokenCheck
+        self.ignoreTokenRetry = ignoreTokenRetry
 
         self.client = boto3.client('cognito-idp', region_name=self.AWS_REGION, aws_access_key_id="",
                                    aws_secret_access_key="")
@@ -26,18 +29,20 @@ class FunkAPI:
         self.getToken(token=token)
 
         self.data = None
-        self.getData()
+        if autoloadData:
+            self.getData()
 
     # TOKEN
     def getToken(self, refresh=False, token=None):
         if token is not None:
-            if self.testToken(token):
+            if self.testToken(token) or self.ignoreTokenRetry:
                 self.token = token
                 return self.token
+
             self.getToken(refresh=True)
 
         if self.token is None or refresh or (
-                False if not self.always_test_token else not self.testToken(self.token)):
+                False if not self.alwaysTestToken else not self.testToken(self.token)):
             self.token = self.aws.authenticate_user(
             )["AuthenticationResult"]["AccessToken"]
         return self.token
@@ -46,18 +51,19 @@ class FunkAPI:
         if token is None:
             return False
 
-        json = {"operationName": "CustomerForDashboardQuery", "variables": {},
-                "query": "query CustomerForDashboardQuery { me { id } }"}
+        if not self.ignoreTokenCheck:
+            json = {"operationName": "CustomerForDashboardQuery", "variables": {},
+                    "query": "query CustomerForDashboardQuery { me { id } }"}
 
-        req = requests.post(self.API_ENDPOINT, json=json,
-                            headers={
-                                "x-api-key": self.API_KEY,
-                                "Authorization": "Bearer " + token
-                            })
-        result = req.json()
+            req = requests.post(self.API_ENDPOINT, json=json,
+                                headers={
+                                    "x-api-key": self.API_KEY,
+                                    "Authorization": "Bearer " + token
+                                })
+            result = req.json()
 
-        if "errors" in result.keys():
-            return False
+            if "errors" in result.keys():
+                return False
         return True
 
     # DATA
@@ -135,4 +141,4 @@ class FunkAPI:
     def stopLatestTariff(self, productIndex=0, **kwargs):
         personalTariffID = self.getOrderedProducts(
         )[productIndex]["tariffs"][-1]["id"]
-        self.removeProduct(personalTariffID, **kwargs)
+        return self.removeProduct(personalTariffID, **kwargs)
