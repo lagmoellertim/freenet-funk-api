@@ -85,16 +85,16 @@ class FunkAPI:
     def getOrderedProducts(self, refreshData=False):
         return self.getData(refresh=refreshData)["data"]["me"]["customerProducts"]
 
-    def getCurrentTariff(self, refreshData=False):
+    def getCurrentPlan(self, refreshData=False):
         return self.getData(refresh=refreshData)["data"]["me"]["customerProducts"][0]["tariffs"][-1]
 
     # TARIFFS
-    def orderTariff(self, tariffID, productID=None, refreshData=True):
+    def orderPlan(self, planID, productID=None, refreshData=True):
         if productID is None:
             productID = self.getOrderedProducts()[0]["id"]
 
         json = {"operationName": "AddTariffToProductMutation",
-                "variables": {"productID": productID, "tariffID": str(tariffID)},
+                "variables": {"productID": productID, "tariffID": str(planID)},
                 "query": "mutation AddTariffToProductMutation($productID: String!, $tariffID: String!) {\n  tariffAddToCustomerProduct(customerProductId: $productID, productServiceId: $tariffID) {\n    ...TariffFragment\n    __typename\n  }\n}\n\nfragment TariffFragment on TariffCustomerProductService {\n  id\n  booked\n  starts\n  state\n  productServiceId\n  productServiceInfo {\n    id\n    label\n    follower {\n      id\n      label\n      __typename\n    }\n    marketingInfo {\n      name\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n"}
 
         req = requests.post(self.API_ENDPOINT, json=json,
@@ -107,10 +107,10 @@ class FunkAPI:
 
         return req.json()
 
-    def removeProduct(self, personalTariffID, refreshData=True):
+    def removeProduct(self, personalPlanID, refreshData=True):
 
         json = {"operationName": "TerminateTariffMutation",
-                "variables": {"tariffID": personalTariffID},
+                "variables": {"tariffID": personalPlanID},
                 "query": "mutation TerminateTariffMutation($tariffID: String!) {\n  tariffTerminate(customerProductServiceId: $tariffID) {\n    ...TariffFragment\n    __typename\n  }\n}\n\nfragment TariffFragment on TariffCustomerProductService {\n  id\n  booked\n  starts\n  state\n  productServiceId\n  productServiceInfo {\n    id\n    label\n    follower {\n      id\n      label\n      __typename\n    }\n    marketingInfo {\n      name\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n"}
 
         req = requests.post(self.API_ENDPOINT, json=json,
@@ -123,16 +123,16 @@ class FunkAPI:
 
         return req.json()
 
-    def order1GBTariff(self, **kwargs):
-        return self.orderTariff(9, **kwargs)
+    def order1GBPlan(self, **kwargs):
+        return self.orderPlan(9, **kwargs)
 
-    def orderUnlimitedTariff(self, **kwargs):
-        return self.orderTariff(8, **kwargs)
+    def orderUnlimitedPlan(self, **kwargs):
+        return self.orderPlan(8, **kwargs)
 
     def startPause(self, **kwargs):
-        return self.orderTariff(42, **kwargs)
+        return self.orderPlan(42, **kwargs)
 
-    def stopLatestTariff(self, productIndex=0, **kwargs):
-        personalTariffID = self.getOrderedProducts(
+    def stopLatestPlan(self, productIndex=0, **kwargs):
+        personalPlanID = self.getOrderedProducts(
         )[productIndex]["tariffs"][-1]["id"]
-        self.removeProduct(personalTariffID, **kwargs)
+        self.removeProduct(personalPlanID, **kwargs)
