@@ -28,6 +28,18 @@ class FunkAPI:
         self.data = None
         self.getData()
 
+    def apiRequest(self, json, token=None):
+        token = token if token is not None else self.getToken()
+
+        req = requests.post(self.API_ENDPOINT, json=json,
+                            headers={
+                                "x-api-key": self.API_KEY,
+                                "Authorization": "Bearer " + token,
+                                "apollographql-client-version": "1.0.1 (1143)",
+                                "apollographql-client-name": "freenet FUNK iOS"
+                            })
+        return req.json()
+
     # TOKEN
     def getToken(self, refresh=False, token=None):
         if token is not None:
@@ -49,14 +61,7 @@ class FunkAPI:
         json = {"operationName": "CustomerForDashboardQuery", "variables": {},
                 "query": "query CustomerForDashboardQuery { me { id } }"}
 
-        req = requests.post(self.API_ENDPOINT, json=json,
-                            headers={
-                                "x-api-key": self.API_KEY,
-                                "Authorization": "Bearer " + token,
-                                "apollographql-client-version": "1.0.1 (1143)",
-                                "apollographql-client-name": "freenet FUNK iOS"
-                            })
-        result = req.json()
+        result = self.apiRequest(json, token=token)
 
         if "errors" in result.keys():
             return False
@@ -68,15 +73,7 @@ class FunkAPI:
                 "query": "query CustomerForDashboardQuery {\n  me {\n    ...CustomerForDashboardFragment\n    __typename\n  }\n}\n\nfragment CustomerForDashboardFragment on Customer {\n  id\n  details {\n    ...DetailsFragment\n    __typename\n  }\n  customerProducts {\n    ...ProductFragment\n    __typename\n  }\n  __typename\n}\n\nfragment DetailsFragment on Details {\n  firstName\n  lastName\n  dateOfBirth\n  contactEmail\n  __typename\n}\n\nfragment ProductFragment on FUNKCustomerProduct {\n  id\n  state\n  paymentMethods {\n    ...PaymentMethodFragment\n    __typename\n  }\n  mobileNumbers {\n    ...MobileNumberFragment\n    __typename\n  }\n  sims {\n    ...SIMFragment\n    __typename\n  }\n  tariffs: tariffCustomerProductServices {\n    ...TariffFragment\n    __typename\n  }\n  __typename\n}\n\nfragment PaymentMethodFragment on PaymentMethod {\n  id\n  state\n  approvalChallenge {\n    approvalURL\n    __typename\n  }\n  agreement {\n    state\n    payerInfo {\n      payerID\n      email\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment MobileNumberFragment on MobileNumberCPS {\n  id\n  number\n  state\n  usage {\n    usedDataPercentage\n    __typename\n  }\n  productServiceId\n  productServiceInfo {\n    id\n    label\n    __typename\n  }\n  ... on MNPImportCustomerProductService {\n    otherProviderShortcut\n    otherProviderCustomName\n    otherContract {\n      contractType\n      mobileNumber\n      mobileNumberIsVerified\n      __typename\n    }\n    mnpInfos {\n      confirmedPortingDate\n      lastPortingResult\n      problemCode\n      problemReason\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment SIMFragment on SIMCustomerProductService {\n  id\n  networkState\n  state\n  iccid\n  delivery {\n    state\n    trackingDetails {\n      stateId\n      stateLabel\n      trackingURL\n      __typename\n    }\n    deliveryProvider\n    address {\n      city\n      additionalInfo\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment TariffFragment on TariffCustomerProductService {\n  id\n  booked\n  starts\n  state\n  productServiceId\n  productServiceInfo {\n    id\n    label\n    follower {\n      id\n      label\n      __typename\n    }\n    marketingInfo {\n      name\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n"}
 
         if self.data is None or refresh:
-            req = requests.post(self.API_ENDPOINT, json=json,
-                                headers={
-                                    "x-api-key": self.API_KEY,
-                                    "Authorization": "Bearer " + self.getToken(),
-                                    "apollographql-client-version": "1.0.1 (1143)",
-                                    "apollographql-client-name": "freenet FUNK iOS"
-                                })
-
-            self.data = req.json()
+            self.data = self.apiRequest(json)
 
         return self.data
 
@@ -101,15 +98,11 @@ class FunkAPI:
                 "variables": {"productID": productID, "tariffID": str(planID)},
                 "query": "mutation AddTariffToProductMutation($productID: String!, $tariffID: String!) {\n  tariffAddToCustomerProduct(customerProductId: $productID, productServiceId: $tariffID) {\n    ...TariffFragment\n    __typename\n  }\n}\n\nfragment TariffFragment on TariffCustomerProductService {\n  id\n  booked\n  starts\n  state\n  productServiceId\n  productServiceInfo {\n    id\n    label\n    follower {\n      id\n      label\n      __typename\n    }\n    marketingInfo {\n      name\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n"}
 
-        req = requests.post(self.API_ENDPOINT, json=json,
-                            headers={
-                                "x-api-key": self.API_KEY,
-                                "Authorization": "Bearer " + self.getToken()
-                            })
+        result = self.apiRequest(json)
 
         self.getData(refresh=refreshData)
 
-        return req.json()
+        return result
 
     def removeProduct(self, personalPlanID, refreshData=True):
 
@@ -117,15 +110,11 @@ class FunkAPI:
                 "variables": {"tariffID": personalPlanID},
                 "query": "mutation TerminateTariffMutation($tariffID: String!) {\n  tariffTerminate(customerProductServiceId: $tariffID) {\n    ...TariffFragment\n    __typename\n  }\n}\n\nfragment TariffFragment on TariffCustomerProductService {\n  id\n  booked\n  starts\n  state\n  productServiceId\n  productServiceInfo {\n    id\n    label\n    follower {\n      id\n      label\n      __typename\n    }\n    marketingInfo {\n      name\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n"}
 
-        req = requests.post(self.API_ENDPOINT, json=json,
-                            headers={
-                                "x-api-key": self.API_KEY,
-                                "Authorization": "Bearer " + self.getToken()
-                            })
+        result = self.apiRequest(json)
 
         self.getData(refresh=refreshData)
 
-        return req.json()
+        return result
 
     def order1GBPlan(self, **kwargs):
         return self.orderPlan(9, **kwargs)
