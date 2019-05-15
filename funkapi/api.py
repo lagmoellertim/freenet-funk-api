@@ -52,7 +52,9 @@ class FunkAPI:
         req = requests.post(self.API_ENDPOINT, json=json,
                             headers={
                                 "x-api-key": self.API_KEY,
-                                "Authorization": "Bearer " + token
+                                "Authorization": "Bearer " + token,
+                                "apollographql-client-version": "1.0.1 (1143)",
+                                "apollographql-client-name": "freenet FUNK iOS"
                             })
         result = req.json()
 
@@ -69,7 +71,9 @@ class FunkAPI:
             req = requests.post(self.API_ENDPOINT, json=json,
                                 headers={
                                     "x-api-key": self.API_KEY,
-                                    "Authorization": "Bearer " + self.getToken()
+                                    "Authorization": "Bearer " + self.getToken(),
+                                    "apollographql-client-version": "1.0.1 (1143)",
+                                    "apollographql-client-name": "freenet FUNK iOS"
                                 })
 
             self.data = req.json()
