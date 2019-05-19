@@ -10,13 +10,16 @@ class FunkAPI:
     AWS_POOL_ID = "eu-central-1_ZPDpzBJy4"
     AWS_CLIENT_ID = "3asd34f9vfrg6pd2mrbqhn3g3r"
 
-    def __init__(self, username, password, token=None, always_test_token=False):
+    def __init__(self, username, password, token=None, always_test_token=False, ignore_token_check=False,
+                 ignore_token_retry=True, autoload_data=True):
         self.username = username
         self.password = password
         self.always_test_token = always_test_token
+        self.ignore_token_check = ignore_token_check
+        self.ignore_token_retry = ignore_token_retry
 
-        self.client = boto3.client('cognito-idp', region_name=self.AWS_REGION, aws_access_key_id="",
-                                   aws_secret_access_key="")
+        self.client = boto3.client('cognito-idp', region_name=self.AWS_REGION,
+                                   aws_access_key_id="", aws_secret_access_key="")
 
         self.aws = AWSSRP(username=self.username, password=self.password,
                           pool_id=self.AWS_POOL_ID,
@@ -26,7 +29,20 @@ class FunkAPI:
         self.getToken(token=token)
 
         self.data = None
-        self.getData()
+        if autoload_data:
+            self.getData()
+
+    def apiRequest(self, json, token=None):
+        token = token if token is not None else self.getToken()
+
+        req = requests.post(self.API_ENDPOINT, json=json,
+                            headers={
+                                "x-api-key": self.API_KEY,
+                                "Authorization": "Bearer " + token,
+                                "apollographql-client-version": "1.0.1 (1143)",
+                                "apollographql-client-name": "freenet FUNK iOS"
+                            })
+        return req.json()
 
     def apiRequest(self, json, token=None):
         token = token if token is not None else self.getToken()
@@ -43,9 +59,10 @@ class FunkAPI:
     # TOKEN
     def getToken(self, refresh=False, token=None):
         if token is not None:
-            if self.testToken(token):
+            if self.testToken(token) or self.ignore_token_retry:
                 self.token = token
                 return self.token
+
             self.getToken(refresh=True)
 
         if self.token is None or refresh or (
@@ -58,13 +75,15 @@ class FunkAPI:
         if token is None:
             return False
 
-        json = {"operationName": "CustomerForDashboardQuery", "variables": {},
-                "query": "query CustomerForDashboardQuery { me { id } }"}
+        if not self.ignore_token_check:
+            json = {"operationName": "CustomerForDashboardQuery", "variables": {},
+                    "query": "query CustomerForDashboardQuery { me { id } }"}
 
-        result = self.apiRequest(json, token=token)
+            result = self.apiRequest(json, token=token)
 
-        if "errors" in result.keys():
-            return False
+
+            if "errors" in result.keys():
+                return False
         return True
 
     # DATA
@@ -77,42 +96,46 @@ class FunkAPI:
 
         return self.data
 
-    def getPersonalInfo(self, refreshData=False):
-        data = self.getData(refresh=refreshData)["data"]["me"]
-        personalInfo = {"id": data["id"], **data["details"]}
-        del personalInfo["__typename"]
-        return personalInfo
+    def getPersonalInfo(self, refresh_data=False):
+        data = self.getData(refresh=refresh_data)["data"]["me"]
+        personal_info = {"id": data["id"], **data["details"]}
+        del personal_info["__typename"]
+        return personal_info
 
-    def getOrderedProducts(self, refreshData=False):
-        return self.getData(refresh=refreshData)["data"]["me"]["customerProducts"]
+    def getOrderedProducts(self, refresh_data=False):
+        return self.getData(refresh=refresh_data)["data"]["me"]["customerProducts"]
 
-    def getCurrentPlan(self, refreshData=False):
-        return self.getData(refresh=refreshData)["data"]["me"]["customerProducts"][0]["tariffs"][-1]
+
+    def getCurrentPlan(self, refresh_data=False):
+        return self.getData(refresh=refresh_data)["data"]["me"]["customerProducts"][0]["tariffs"][-1]
 
     # TARIFFS
-    def orderPlan(self, planID, productID=None, refreshData=True):
-        if productID is None:
-            productID = self.getOrderedProducts()[0]["id"]
+    def orderPlan(self, plan_id, product_id=None, refresh_data=True):
+        if product_id is None:
+            product_id = self.getOrderedProducts()[0]["id"]
 
         json = {"operationName": "AddTariffToProductMutation",
-                "variables": {"productID": productID, "tariffID": str(planID)},
+                "variables": {"productID": product_id, "tariffID": str(plan_id)},
+
                 "query": "mutation AddTariffToProductMutation($productID: String!, $tariffID: String!) {\n  tariffAddToCustomerProduct(customerProductId: $productID, productServiceId: $tariffID) {\n    ...TariffFragment\n    __typename\n  }\n}\n\nfragment TariffFragment on TariffCustomerProductService {\n  id\n  booked\n  starts\n  state\n  productServiceId\n  productServiceInfo {\n    id\n    label\n    follower {\n      id\n      label\n      __typename\n    }\n    marketingInfo {\n      name\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n"}
 
         result = self.apiRequest(json)
 
-        self.getData(refresh=refreshData)
+        self.getData(refresh=refresh_data)
 
         return result
 
-    def removeProduct(self, personalPlanID, refreshData=True):
+
+    def removeProduct(self, personal_plan_id, refresh_data=True):
 
         json = {"operationName": "TerminateTariffMutation",
-                "variables": {"tariffID": personalPlanID},
+                "variables": {"tariffID": personal_plan_id},
+
                 "query": "mutation TerminateTariffMutation($tariffID: String!) {\n  tariffTerminate(customerProductServiceId: $tariffID) {\n    ...TariffFragment\n    __typename\n  }\n}\n\nfragment TariffFragment on TariffCustomerProductService {\n  id\n  booked\n  starts\n  state\n  productServiceId\n  productServiceInfo {\n    id\n    label\n    follower {\n      id\n      label\n      __typename\n    }\n    marketingInfo {\n      name\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n"}
 
         result = self.apiRequest(json)
 
-        self.getData(refresh=refreshData)
+        self.getData(refresh=refresh_data)
 
         return result
 
@@ -125,7 +148,7 @@ class FunkAPI:
     def startPause(self, **kwargs):
         return self.orderPlan(42, **kwargs)
 
-    def stopLatestPlan(self, productIndex=0, **kwargs):
-        personalPlanID = self.getOrderedProducts(
-        )[productIndex]["tariffs"][-1]["id"]
-        self.removeProduct(personalPlanID, **kwargs)
+    def stopLatestPlan(self, product_index=0, **kwargs):
+        personal_plan_id = self.getOrderedProducts(
+        )[product_index]["tariffs"][-1]["id"]
+        return self.removeProduct(personal_plan_id, **kwargs)
