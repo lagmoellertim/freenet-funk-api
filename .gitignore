@@ -8,5 +8,5 @@ funkapi\.egg-info/
 test\.py
 
 funkapi/__pycache__/
-
+freenet_funk_api\.egg-info/
 \.vscode/
