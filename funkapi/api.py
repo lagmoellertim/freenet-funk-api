@@ -44,6 +44,18 @@ class FunkAPI:
                             })
         return req.json()
 
+    def apiRequest(self, json, token=None):
+        token = token if token is not None else self.getToken()
+
+        req = requests.post(self.API_ENDPOINT, json=json,
+                            headers={
+                                "x-api-key": self.API_KEY,
+                                "Authorization": "Bearer " + token,
+                                "apollographql-client-version": "1.0.1 (1143)",
+                                "apollographql-client-name": "freenet FUNK iOS"
+                            })
+        return req.json()
+
     # TOKEN
     def getToken(self, refresh=False, token=None):
         if token is not None:
@@ -69,6 +81,7 @@ class FunkAPI:
 
             result = self.apiRequest(json, token=token)
 
+
             if "errors" in result.keys():
                 return False
         return True
@@ -92,6 +105,7 @@ class FunkAPI:
     def getOrderedProducts(self, refresh_data=False):
         return self.getData(refresh=refresh_data)["data"]["me"]["customerProducts"]
 
+
     def getCurrentPlan(self, refresh_data=False):
         return self.getData(refresh=refresh_data)["data"]["me"]["customerProducts"][0]["tariffs"][-1]
 
@@ -102,6 +116,7 @@ class FunkAPI:
 
         json = {"operationName": "AddTariffToProductMutation",
                 "variables": {"productID": product_id, "tariffID": str(plan_id)},
+
                 "query": "mutation AddTariffToProductMutation($productID: String!, $tariffID: String!) {\n  tariffAddToCustomerProduct(customerProductId: $productID, productServiceId: $tariffID) {\n    ...TariffFragment\n    __typename\n  }\n}\n\nfragment TariffFragment on TariffCustomerProductService {\n  id\n  booked\n  starts\n  state\n  productServiceId\n  productServiceInfo {\n    id\n    label\n    follower {\n      id\n      label\n      __typename\n    }\n    marketingInfo {\n      name\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n"}
 
         result = self.apiRequest(json)
@@ -110,10 +125,12 @@ class FunkAPI:
 
         return result
 
+
     def removeProduct(self, personal_plan_id, refresh_data=True):
 
         json = {"operationName": "TerminateTariffMutation",
                 "variables": {"tariffID": personal_plan_id},
+
                 "query": "mutation TerminateTariffMutation($tariffID: String!) {\n  tariffTerminate(customerProductServiceId: $tariffID) {\n    ...TariffFragment\n    __typename\n  }\n}\n\nfragment TariffFragment on TariffCustomerProductService {\n  id\n  booked\n  starts\n  state\n  productServiceId\n  productServiceInfo {\n    id\n    label\n    follower {\n      id\n      label\n      __typename\n    }\n    marketingInfo {\n      name\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n"}
 
         result = self.apiRequest(json)

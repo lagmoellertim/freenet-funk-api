@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Freenet FUNK is cellphone tariff that offers **unlimited** (or 1 GB of) 4G data. The tariff is can be started, stopped and paused **daily**.
+Freenet FUNK is cellphone plan that offers **unlimited** (or 1 GB of) 4G data. The plan is can be started, stopped and paused **daily**.
 
 To make the most out of this flexibility, I reverse engineered the **API**   to give anyone the ability to develop amazing apps on their own!
 
@@ -77,22 +77,22 @@ personalInfo = api.getPersonalInfo()
 products = api.getOrderedProducts()
 ```
 
-### Get the currently active Tariff
+### Get the currently active Plan
 
 ```python3
-currentTariff = api.getCurrentTariff()
+currentPlan = api.getCurrentPlan()
 ```
 
-### Order the 1GB Tariff
+### Order the 1GB Plan
 
 ```python3
-status = api.order1GBTariff()
+status = api.order1GBPlan()
 ```
 
-### Order the unlimited Tariff
+### Order the unlimited Plan
 
 ```python3
-status = api.orderUnlimitedTariff()
+status = api.orderUnlimitedPlan()
 ```
 
 ### Start a Break
@@ -104,7 +104,7 @@ status = api.startPause()
 ### Stop the latest Product (includes stopping a break)
 
 ```python3
-status = api.stopLatestTariff()
+status = api.stopLatestPlan()
 ```
 
 ## Contributing
@@ -117,7 +117,7 @@ If you are missing a feature or have new idea, go for it! That is what open-sour
 
 ## Donate
 
-You can also contribute by [buying me a coffee](http://donate.lagmoellertim.de).
+You can also contribute by [buying me a coffee](https://www.buymeacoffee.com/lagmoellertim).
 
 ## License
 
