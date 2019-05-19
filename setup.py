@@ -8,7 +8,7 @@ with open('requirements.txt') as f:
 
 setuptools.setup(
     name='freenet-funk-api',
-    version='0.1.1',
+    version='0.1.4',
     install_requires=requirements,
     license='MIT License',
     author='Tim-Luca Lagmöller',
