@@ -7,8 +7,8 @@ with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
 setuptools.setup(
-    name='freenet-funk-api',
-    version='0.1.4',
+    name='funkapi',
+    version='0.1.5',
     install_requires=requirements,
     license='MIT License',
     author='Tim-Luca Lagmöller',
