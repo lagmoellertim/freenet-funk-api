@@ -10,3 +10,5 @@ test\.py
 funkapi/__pycache__/
 
 \.vscode/
+
+freenet_funk_api\.egg-info/
