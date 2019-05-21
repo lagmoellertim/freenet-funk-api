@@ -2,7 +2,7 @@ import boto3
 import requests
 from warrant.aws_srp import AWSSRP
 
-from funkapi.graphql_schema import getDataSchema, orderPlanSchema, removeProductSchema
+from funkapi.graphql_schema import schema
 
 class FunkAPI:
     """
@@ -22,11 +22,11 @@ class FunkAPI:
 
         :param username: Account E-Mail
         :param password: Account Password
-        :param token: AWS cognito JWT token
-        :param always_test_token: ?
-        :param ignore_token_check: ?
-        :param ignore_token_retry: ?
-        :param autoload_data: ?
+        :param token: AWS Cognito JWT token
+        :param always_test_token: Whether the validity of a token should be tested after each request
+        :param ignore_token_check: Whether a token should be checked at all (when supplied via the token param)
+        :param ignore_token_retry: Whether to stop using the user/pass params if the supplied token is wrong
+        :param autoload_data: Whether to automatically load the data on initialization
         """
 
         self.username = username
@@ -75,7 +75,7 @@ class FunkAPI:
 
         :param refresh: Disallow caching
         :param token: AWS cognito JWT token
-        :return:
+        :return: AWS cognito JWT token
         """
 
         if token is not None:
@@ -96,7 +96,7 @@ class FunkAPI:
         Test validity of authorization token.
 
         :param token: AWS cognito JWT token
-        :return: Boolean
+        :return: Boolean whether the token is valid (True) or not (False)
         """
 
         if token is None:
@@ -117,12 +117,12 @@ class FunkAPI:
         """
         Get data from endpoint.
 
-        :param refresh: Disallow caching
+        :param refresh: Ignore cache / Force Refresh
         :return: Data
         """
 
         json = {"operationName": "CustomerForDashboardQuery", "variables": {},
-                "query": getDataSchema}
+                "query": schema["get_data"]}
         if self.data is None or refresh:
             self.data = self.apiRequest(json)
 
@@ -132,7 +132,7 @@ class FunkAPI:
         """
         Get personal data.
 
-        :param refresh_data: Disallow caching
+        :param refresh_data: Ignore cache / Force Refresh
         :return: Personal data
         """
 
@@ -146,8 +146,8 @@ class FunkAPI:
         """
         Get ordered products (e.g. sim cards).
 
-        :param refresh_data: Disallow caching
-        :return:
+        :param refresh_data: Ignore cache / Force Refresh
+        :return: A list of all ordered Products
         """
 
         return self.getData(refresh=refresh_data)["data"]["me"]["customerProducts"]
@@ -156,8 +156,8 @@ class FunkAPI:
         """
         Get current plan.
 
-        :param refresh_data: Disallow caching
-        :return: Current tariff
+        :param refresh_data: Ignore cache / Force Refresh
+        :return: Current plan
         """
 
         return self.getData(refresh=refresh_data)["data"]["me"]["customerProducts"][0]["tariffs"][-1]
@@ -167,8 +167,8 @@ class FunkAPI:
         Order a plan.
 
         :param plan_id: Id of plan which should be ordered
-        :param product_id: ?
-        :param refresh_data: Disallow caching
+        :param product_id: The sim card id the plan should be applied to
+        :param refresh_data: Ignore cache / Force Refresh
         :return: Result of order
         """
 
@@ -177,7 +177,7 @@ class FunkAPI:
 
         json = {"operationName": "AddTariffToProductMutation",
                 "variables": {"productID": product_id, "tariffID": str(plan_id)},
-                "query": orderPlanSchema}
+                "query": schema["order_plan"]}
         result = self.apiRequest(json)
 
         self.getData(refresh=refresh_data)
@@ -188,14 +188,14 @@ class FunkAPI:
         """
         Remove/Deactivate an active plan.
 
-        :param personal_plan_id: Id of current tariff
-        :param refresh_data: Disallow caching
+        :param personal_plan_id: Id of current plan
+        :param refresh_data: Ignore cache / Force Refresh
         :return: Result of removal
         """
 
         json = {"operationName": "TerminateTariffMutation",
                 "variables": {"tariffID": personal_plan_id},
-                "query": removeProductSchema}
+                "query": schema["remove_product"]}
 
         result = self.apiRequest(json)
 
@@ -207,7 +207,7 @@ class FunkAPI:
         """
         Order 1GB plan.
 
-        :param kwargs: ?
+        :param kwargs: More details at FunkAPI.orderPlan
         :return: Result of order
         """
 
@@ -217,7 +217,7 @@ class FunkAPI:
         """
         Order unlimited plan.
 
-        :param kwargs: ?
+        :param kwargs: More details at FunkAPI.orderPlan
         :return: Result of order
         """
 
@@ -227,7 +227,7 @@ class FunkAPI:
         """
         Start pause mode.
 
-        :param kwargs: ?
+        :param kwargs: More details at FunkAPI.orderPlan
         :return: Result of order
         """
 
@@ -237,8 +237,8 @@ class FunkAPI:
         """
         Stop current plan.
 
-        :param product_index:
-        :param kwargs: ?
+        :param product_index: The sim card id of which the plan should be stopped
+        :param kwargs: More details at FunkAPI.removeProduct
         :return: Result of order
         """
 

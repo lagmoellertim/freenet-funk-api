@@ -1,4 +1,5 @@
-getDataSchema = """
+schema = {
+    "get_data":"""
 query CustomerForDashboardQuery {
   me {
     ...CustomerForDashboardFragment
@@ -149,9 +150,8 @@ fragment TariffFragment on TariffCustomerProductService {
   }
   __typename
 }
-"""
-
-orderPlanSchema = """
+""",
+    "order_plan":"""
 mutation AddTariffToProductMutation($productID: String!, $tariffID: String!) {
   tariffAddToCustomerProduct(customerProductId: $productID, productServiceId: $tariffID) {
     ...TariffFragment
@@ -181,9 +181,8 @@ fragment TariffFragment on TariffCustomerProductService {
   }
   __typename
 }
-"""
-
-removeProductSchema = """
+""",
+    "remove_product":"""
 mutation TerminateTariffMutation($tariffID: String!) {
   tariffTerminate(customerProductServiceId: $tariffID) {
     TariffFragment
@@ -214,3 +213,4 @@ fragment TariffFragment on TariffCustomerProductService {
   __typename
 }
 """
+}

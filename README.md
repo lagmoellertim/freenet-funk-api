@@ -95,7 +95,7 @@ status = api.order1GBPlan()
 status = api.orderUnlimitedPlan()
 ```
 
-### Start a Break
+### Start a Pause
 
 ```python3
 status = api.startPause()
@@ -106,6 +106,11 @@ status = api.startPause()
 ```python3
 status = api.stopLatestPlan()
 ```
+
+### Documentation
+
+If you get stuck at some point while trying to use the API, take a look the code. It is fully commented and well-labeled,
+so that should help you understand what's going on.
 
 ## Contributing
 
