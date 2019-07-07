@@ -168,7 +168,7 @@ class FunkAPI:
             if planStart > now:
                 continue
             currentPlan = plan
-            
+
         return currentPlan
 
     def orderPlan(self, plan_id, product_id=None, refresh_data=True):
