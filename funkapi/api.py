@@ -1,5 +1,6 @@
 import boto3
 import requests
+import datetime
 from warrant.aws_srp import AWSSRP
 
 from funkapi.graphql_schema import schema
@@ -160,7 +161,15 @@ class FunkAPI:
         :return: Current plan
         """
 
-        return self.getData(refresh=refresh_data)["data"]["me"]["customerProducts"][0]["tariffs"][-1]
+        now = datetime.datetime.now(datetime.timezone.utc)
+        currentPlan = None
+        for plan in self.getData(refresh=refresh_data)["data"]["me"]["customerProducts"][0]["tariffs"]:
+            planStart = datetime.datetime.strptime(plan["starts"], "%Y-%m-%dT%H:%M:%S.%f%z")
+            if planStart > now:
+                continue
+            currentPlan = plan
+            
+        return currentPlan
 
     def orderPlan(self, plan_id, product_id=None, refresh_data=True):
         """
