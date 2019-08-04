@@ -9,7 +9,7 @@ To make the most out of this flexibility, I reverse engineered the **API**   to 
 ## Prerequisites
 
 - Python >=3.2
-- pip
+- pip3 (or just pip on windows)
 
 ## Installation
 
@@ -17,6 +17,8 @@ To make the most out of this flexibility, I reverse engineered the **API**   to 
 git clone https://github.com/lagmoellertim/freenet-funk-api.git
 
 cd freenet-funk-api
+
+pip3 install -r requirements.txt
 
 python3 setup.py install
 ```
@@ -27,6 +29,8 @@ python3 setup.py install
 git clone https://github.com/lagmoellertim/freenet-funk-api.git
 
 cd freenet-funk-api
+
+pip3 install -r requirements.txt
 
 python3 setup.py sdist bdist_wheel
 ```
