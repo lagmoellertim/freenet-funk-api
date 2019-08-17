@@ -13,7 +13,7 @@ To make the most out of this flexibility, I reverse engineered the **API**   to 
 
 ## Installation
 ### Install from pypi
-```
+```sh
 pip3 install funkapi
 ```
 
