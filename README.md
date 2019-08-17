@@ -12,7 +12,12 @@ To make the most out of this flexibility, I reverse engineered the **API**   to 
 - pip3 (or just pip on windows)
 
 ## Installation
+### Install from pypi
+```sh
+pip3 install funkapi
+```
 
+### Install from source
 ```sh
 git clone https://github.com/lagmoellertim/freenet-funk-api.git
 
