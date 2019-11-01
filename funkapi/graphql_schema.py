@@ -185,7 +185,7 @@ fragment TariffFragment on TariffCustomerProductService {
     "remove_product":"""
 mutation TerminateTariffMutation($tariffID: String!) {
   tariffTerminate(customerProductServiceId: $tariffID) {
-    TariffFragment
+    ...TariffFragment
     __typename
   }
 }
