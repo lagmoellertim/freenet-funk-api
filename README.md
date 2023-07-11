@@ -1,5 +1,9 @@
 # Freenet FUNK API
 
+## Archived
+
+Since I don't use freenet funk anymore, I am not able to maintain this api any longer. If you want to become the new maintainer, feel free to fork this repo.
+
 ## Introduction
 
 Freenet FUNK is cellphone plan that offers **unlimited** (or 1 GB of) 4G data. The plan is can be started, stopped and paused **daily**.
